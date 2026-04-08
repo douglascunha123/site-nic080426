@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentos de nós dois - Que gostoosooo!</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',sans-serif;background:#0f0f1a;color:#fff;opacity:0;transform:scale(0.95);animation:entrada 1.2s ease forwards}
+@keyframes entrada{to{opacity:1;transform:scale(1)}}
+body::before{content:"";position:fixed;width:200%;height:200%;background:radial-gradient(circle,#ff4d6d22 1px, transparent 1px);background-size:40px 40px;animation:move 40s linear infinite;z-index:-1}
+@keyframes move{from{transform:translate(0,0)}to{transform:translate(-200px,-200px)}}
+
+h1{text-align:center;font-size:1.5rem;margin:10px 0}
+#mensagem{text-align:center;font-size:.95rem;padding:0 10px;min-height:40px}
+
+#game{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;max-width:420px;margin:0 auto}
+.card{width:100%;aspect-ratio:1/1;position:relative;max-width:90px}
+.inner{position:absolute;width:100%;height:100%;transform-style:preserve-3d;transition:.6s}
+.card.flip .inner{transform:rotateY(180deg)}
+.front,.back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:10px}
+.front{background:#1a0033}
+.back{transform:rotateY(180deg)}
+.back img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+
+button{background:#ff4d6d;border:none;padding:10px 18px;border-radius:20px;color:#fff;cursor:pointer;font-size:.9rem}
+
+#modal{
+ display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+ background:rgba(0,0,0,.8);justify-content:center;align-items:center;flex-direction:column;padding:20px
+}
+
+#modal input{padding:10px;border-radius:10px;border:none;margin-top:10px;width:80%;max-width:300px}
+
+#final{display:none;text-align:center;padding:20px}
+
+@media(min-width:600px){#game{grid-template-columns:repeat(5,1fr);max-width:600px}.card{max-width:100px}}
+@media(min-width:900px){#game{grid-template-columns:repeat(6,1fr);max-width:900px}.card{max-width:120px}}
+</style>
+</head>
+<body>
+
+<h1 id="titulo">Momentos de nós dois - Que gostoosooo! 💖</h1>
+<div id="intro" style="padding:20px;text-align:center;max-width:600px;margin:0 auto;">
+  <h2>Antes de começarmos...</h2>
+  <p>
+  Nic, esse não é só um jogo... 💖<br><br>
+  É um pedacinho da nossa história transformado em momentos,
+  memórias e sentimentos que só nós dois entendemos.<br><br>
+  Cada carta guarda algo que vivemos,
+  cada acerto é uma lembrança que vale a pena reviver.<br><br>
+  Então vai com calma... sente tudo de novo...<br>
+  e lembra que o melhor de tudo isso
+  é que ainda estamos escrevendo muito mais juntos.
+  </p>
+  <button onclick="iniciarJogo()">Começar 💌</button>
+</div>
+
+<div id="mensagem"></div>
+<div id="game" style="display:none"></div>
+
+<div id="modal">
+  <h3>Onde foi esse momento?</h3>
+  <p id="dica"></p>
+  <input id="resposta" placeholder="Digite o lugar...">
+  <button onclick="validarResposta()">Confirmar</button>
+</div>
+
+<div id="final"> 
+  <h2>Depois de tudo isso...</h2>
+  <p>
+  Se cada memória nossa já é especial assim...<br>
+  imagina todas as que ainda vamos viver?<br><br>
+  Entre risadas, viagens, momentos simples e intensos...
+  eu só consigo pensar em uma coisa:<br><br>
+  nós dois, andando juntos por Paris,
+  de mãos dadas, rindo à toa,
+  vivendo mais um capítulo da nossa história. 🇫🇷💖
+  </p>
+  <h2>Depois de todas as memórias...</h2>
+  <p>Você escolhe continuar criando infinitas comigo?</p>
+  <button onclick="alert('Eu sabia 💖')">Sim</button>
+  <button onclick="alert('Então escolhe de novo 😏')">Sim (óbvio)</button>
+</div>
+
+<audio id="music" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const dados = [
+ {respostas:["casa da nic","casa"], dica:"Onde tudo começou 💖"},
+ {respostas:["teatro municipal","teatro"], dica:"Luzes, palco e nós"},
+ {respostas:["santa helena"], dica:"Canoas que são para comer"},
+ {respostas:["maresias","praia"], dica:"Som do mar 🌊"},
+ {respostas:["porkão","restaurante"], dica:"Up the Irons"},
+ {respostas:["igreja","são tomé"], dica:"Um lugar espiritual em uma cidade mística"},
+ {respostas:["jardim secreto"], dica:"Escondido do mundo"},
+ {respostas:["poço secreto"], dica:"Água e mistério"},
+ {respostas:["velhote"], dica:"Nosso rolê em frente a esse bar. Como era o nome do bar mesmo?"},
+ {respostas:["pub cogumelo azul"], dica:"Tem a ver com uns cogumelos... 😏"},
+ {respostas:["festa da dália"], dica:"Flores nos jardins"},
+ {respostas:["bertioga"], dica:"A brisa do mar"},
+ {respostas:["porkão"], dica:"Especial"},
+ {respostas:["462 brew pub"], dica:"Qual o nome dessa cervejaria mesmo?"},
+ {respostas:["luís carlos"], dica:"Onde fica esta estação?"},
+ {respostas:["monsters of rock"], dica:"Ooh, baby, I love you...What more can I say"},
+ {respostas:["casa da nic"], dica:"Onde o Dante mora"}
+];
+
+let cartas=[];
+for(let i=0;i<17;i++){
+ cartas.push({id:i,img:`img/${i+1}.jpg`});
+ cartas.push({id:i,img:`img/${i+1}.jpg`});
+}
+
+cartas.sort(()=>0.5-Math.random());
+
+const game=document.getElementById('game');
+let selecionadas=[];
+let acertos=0;
+let atual=null;
+let musicaIniciada=false;
+
+cartas.forEach(c=>{
+ const card=document.createElement('div');
+ card.className='card';
+ card.innerHTML=`<div class="inner"><div class="front"></div><div class="back"><img src="${c.img}"></div></div>`;
+ card.onclick=()=>clicar(card,c);
+ game.appendChild(card);
+});
+
+function clicar(card,carta){
+ if(card.classList.contains('flip')||selecionadas.length===2)return;
+
+ if(!musicaIniciada){iniciarMusica();musicaIniciada=true}
+
+ card.classList.add('flip');
+ selecionadas.push({card,carta});
+
+ if(selecionadas.length===2){setTimeout(validarPar,700)}
+}
+
+function validarPar(){
+ const[a,b]=selecionadas;
+
+ if(a.carta.id===b.carta.id){
+   atual=a.carta.id;
+   document.getElementById('modal').style.display='flex';
+   document.getElementById('dica').innerText=dados[atual].dica;
+ }else{
+   a.card.classList.remove('flip');
+   b.card.classList.remove('flip');
+   mostrarMensagem(dicaEmocional());
+ }
+
+ selecionadas=[];
+}
+
+function validarResposta(){
+ const input=document.getElementById('resposta').value.toLowerCase();
+ const respostas=dados[atual].respostas;
+
+ if(respostas.some(r=>input.includes(r))){
+   acertos++;
+   mostrarMensagem("Memória desbloqueada 💖");
+   fecharModal();
+ }else{
+   mostrarMensagem("Quase... tenta lembrar melhor 💭");
+ }
+
+ if(acertos===17){
+   game.style.display='none';
+   document.getElementById('final').style.display='block';
+ }
+}
+
+function fecharModal(){
+ document.getElementById('modal').style.display='none';
+ document.getElementById('resposta').value="";
+}
+
+function mostrarMensagem(msg){
+ document.getElementById('mensagem').innerText=msg;
+}
+
+function dicaEmocional(){
+ const dicas=["Nem tudo encaixa de primeira...","Tenta de novo 💖","Nosso tempo é perfeito"];
+ return dicas[Math.floor(Math.random()*dicas.length)];
+}
+
+function iniciarMusica(){
+ const audio=document.getElementById('music');
+ audio.volume=0;audio.play();
+ let vol=0;
+ const fade=setInterval(()=>{
+  if(vol<1){vol+=0.05;audio.volume=vol}
+  else clearInterval(fade)
+ },200);
+}
+function iniciarJogo(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('game').style.display='grid';
+}
+
+</script>
+
+</body>
+</html>
